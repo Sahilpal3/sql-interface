@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SQL DB Interface</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>SQL DB Interface</h1>
+
+    <!--Database Type Selector-->
+    <form method="post" action="/upload" enctype="multipart/form-data">
+        <input type="hidden" name="db_type" value="sqlite3">
+        <label>Upload SQLite DB (.db):</strong></label>
+        <input type="file" name="db_file" accept=".db" required><br>
+        <button type="submit" class="submit_button">Upload & Connect</button
+    </form>
+
+    <br><strong>OR</strong><br><br>
+
+    <button onclick="toggleInstructions()" style="margin-bottom: 10px;">Show MySQL Setup INstructions</button>
+    <div id="mysqlInstructions" class="mysql-instructions" style="display: none;">
+        <h2>MySQL Setup Instructions</h2>
+    <ul>
+        <li>Ensure you have <strong>MySQL Server</strong> installed and running on your machine (or accessible over LAN).</li>
+        <li>Create a database using:
+            <pre><code>CREATE DATABASE your_db_name;</code></pre>
+        </li>
+        <li>Ensure your MySQL user has access:
+            <pre><code>GRANT ALL PRIVILEGES ON your_db_name.* TO 'your_user'@'localhost' IDENTIFIED BY 'your_password';</code></pre>
+        </li>
+        <li>You can test the connection with:
+            <pre><code>mysql -u your_user -p -h 127.0.0.1 -D your_db_name</code></pre>
+        </li>
+        <li>If using a remote server, ensure:
+            <ul>
+                <li>MySQL server is listening on <code>0.0.0.0</code> or public IP in <code>my.cnf</code></li>
+                <li>Port 3306 is open (check firewall settings)</li>
+            </ul>
+        </li>
+    </ul>
+    </div>
+
+    <form action="/connect_mysql" method="post">
+        <input type="hidden" name="db_type" value="mysql">
+        <label>MySQL Host:</label><br>
+        <input type="text" name="host" placeholder="localhost"><br>
+        <label>User:</label><br>
+        <input type="text" name="user" placeholder="root"><br>
+        <label>Password:</label><br>
+        <input type="text" name="password"><br>
+        <label>Database Name:</label><br>
+        <input type="text" name="database"><br>
+        <button type="submit" class="submit_button">Connect to MySQL</button>
+    </form>
+
+    <p>Currently using: <strong>{{ db_path }}</strong></p>
+    <br><hr><br>
+
+    <!--SQL Query form-->
+    <form method="post">
+      <textarea
+        name="query"
+        rows="6"
+        cols="40"
+        placeholder="Write Your SQL query here.."
+      ></textarea
+      ><br />
+      <button type="submit">Run Query...</button>
+    </form>
+
+    {% if output.status == "success" and output.headers %}
+    <h2>Results</h2>
+    <table border="1">
+      <tr>
+        {% for header in output.headers %}
+        <th>{{ header }}</th>
+        {% endfor %}
+      </tr>
+      {% for row in output.rows %}
+      <tr>
+        {% for cell in row %}
+        <td>{{ cell }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </table>
+    {% elif output.status == 'success' %}
+    <p><strong>{{ output.message }}</strong></p>
+    {% elif output.status == 'error' %}
+    <p style="color: red"><strong>Error:</strong> {{ output.message }}</p>
+    {% endif %}
+  </body>
+  <script>
+    function toggleInstructions(){
+        const instruction = document.getElementById("mysqlInstructions")
+        if(instruction.style.display === 'none'){
+            instruction.style.display = 'block';
+        } else {
+            instruction.style.display = 'none';
+        }
+    }
+  </script>
+</html>
